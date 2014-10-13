@@ -6,12 +6,16 @@ A brute-force attack takes very little on a modern computer.
 """
 
 import sys
+import fractions
 
 def main(args):
-	if len(args) != 3:
+	if len(args) < 3:
 		print_usage(args)
 		exit()
 
+	sensibility = 5
+	if (len(args) == 4):
+		sensibility = args[3]
 	mul_inverses = [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25]
 	cipher_text_file = args[1]
 	cipher_text = "".join(open(cipher_text_file, "r").readlines())
@@ -21,12 +25,12 @@ def main(args):
 	keys_tried = 0
 	for a in mul_inverses:
 		keys_tried += 1
-		for b in xrange(1, 26):
+		for b in xrange(0, 26):
 			keys_tried += 1
 			for x in xrange(0, len(cipher_text)):
 				cur_text += transform(a, b, cipher_text[x], True)
-			if makes_sense(cur_text, dictionary, 5):
-				print "Probable plaintext: " + cur_text
+			if makes_sense(cur_text, dictionary, sensibility):
+				print "Probable plaintext: " + cur_text + " with key (" + str(a) + ", " + str(b) + ")" 
 			cur_text = ""
 
 def map_char(c, encoding):
@@ -42,9 +46,11 @@ def makes_sense(text, dictionary, n):
 	Check if the text contains at least n words from the given dictionary.
 	"""
 	count = 0
+	words = []
 	for w in dictionary:
 		try:
 			text.index(w.strip())
+			words.append(w.strip())
 			count += 1
 			if count >= n:
 				return True
@@ -68,17 +74,23 @@ def transform(a, b, x, decrypt = False):
 		return (a * x + b) % 26
 
 def print_usage(args):
-	print "Usage: " + args[0] + " path_to_ciphertext path_to_dictionary"
+	print "Usage: " + args[0] + " path_to_ciphertext path_to_dictionary [sensibility]"
 
 def get_mul_inverse(n, mod):
 	for i in xrange(1, mod):
 		if (n * i) % mod == 1:
 			return i
 	else:
-		raise Exception("Could not find multiplicative inverse for " + str(n) + " in Z " + str(mod))
+		return None
 
 
 
 
 main(sys.argv)
-# print get_mul_inverse(9, 26)
+# Code to find number of coprimes with the modulo in the congruence set
+# mis = []
+# for i in xrange(1, 65536):
+# 	mi = fractions.gcd(i, 65536)
+# 	if mi == 1:
+# 		mis.append(i)
+# print str(len(mis))
